@@ -1,0 +1,4 @@
+backend: vllm
+model_name: Qwen/Qwen2.5-3B-Instruct
+temperature: 0.2
+max_tokens: 256

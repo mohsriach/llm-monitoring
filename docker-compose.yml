@@ -1,0 +1,40 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: llm-observatory-api
+    environment:
+      APP_NAME: llm-observatory
+      APP_ENV: local
+      VLLM_BASE_URL: http://vllm:8000/v1
+      REQUEST_TIMEOUT_SECONDS: 60
+    ports:
+      - "8080:8080"
+    depends_on:
+      - prometheus
+
+  # GPU profile: enable with `docker compose --profile gpu up`
+  vllm:
+    image: vllm/vllm-openai:latest
+    container_name: llm-observatory-vllm
+    command: ["--model", "Qwen/Qwen2.5-3B-Instruct", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
+    profiles: ["gpu"]
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: llm-observatory-prometheus
+    volumes:
+      - ./dashboards/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: llm-observatory-grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus

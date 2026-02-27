@@ -1,0 +1,7 @@
+slo:
+  p95_latency_ms: 2500
+  error_rate_percent: 2.0
+  availability_percent: 99.5
+alerts:
+  enabled: true
+  webhook_env_var: ALERT_WEBHOOK_URL
