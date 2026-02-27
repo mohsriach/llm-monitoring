@@ -1,4 +1,4 @@
-.PHONY: install run test lint compose-up
+.PHONY: install run test lint compose-up drift-check
 
 install:
 	pip install -e .[dev]
@@ -14,3 +14,6 @@ lint:
 
 compose-up:
 	docker compose up --build
+
+drift-check:
+	PYTHONPATH=src python scripts/run_drift_check.py
