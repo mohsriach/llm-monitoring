@@ -2,9 +2,7 @@ import os
 import sqlite3
 from contextlib import closing
 from datetime import datetime, timezone
-from typing import Any, Dict, List
-
-DEFAULT_DB_PATH = os.getenv("MONITORING_DB_PATH", "data/monitoring/requests.db")
+from typing import Any, Dict, List, Optional
 
 
 SCHEMA_SQL = """
@@ -25,20 +23,31 @@ CREATE INDEX IF NOT EXISTS idx_inference_created_at ON inference_logs(created_at
 """
 
 
-def _connect(db_path: str = DEFAULT_DB_PATH) -> sqlite3.Connection:
-    os.makedirs(os.path.dirname(db_path), exist_ok=True)
-    conn = sqlite3.connect(db_path)
+def resolve_db_path(db_path: Optional[str] = None) -> str:
+    return db_path or os.getenv("MONITORING_DB_PATH", "data/monitoring/requests.db")
+
+
+def _connect(db_path: Optional[str] = None) -> sqlite3.Connection:
+    resolved = resolve_db_path(db_path)
+    os.makedirs(os.path.dirname(resolved), exist_ok=True)
+    conn = sqlite3.connect(resolved)
     conn.row_factory = sqlite3.Row
     return conn
 
 
-def init_db(db_path: str = DEFAULT_DB_PATH) -> None:
+def init_db(db_path: Optional[str] = None) -> None:
     with closing(_connect(db_path)) as conn:
         conn.executescript(SCHEMA_SQL)
         conn.commit()
 
 
-def log_inference(entry: Dict[str, Any], db_path: str = DEFAULT_DB_PATH) -> None:
+def clear_logs(db_path: Optional[str] = None) -> None:
+    with closing(_connect(db_path)) as conn:
+        conn.execute("DELETE FROM inference_logs")
+        conn.commit()
+
+
+def log_inference(entry: Dict[str, Any], db_path: Optional[str] = None) -> None:
     sql = """
     INSERT INTO inference_logs (
       id, created_at, endpoint, model, status, latency_ms,
@@ -66,7 +75,7 @@ def log_inference(entry: Dict[str, Any], db_path: str = DEFAULT_DB_PATH) -> None
         conn.commit()
 
 
-def fetch_recent_logs(limit: int = 5000, db_path: str = DEFAULT_DB_PATH) -> List[Dict[str, Any]]:
+def fetch_recent_logs(limit: int = 5000, db_path: Optional[str] = None) -> List[Dict[str, Any]]:
     sql = """
     SELECT * FROM inference_logs
     ORDER BY created_at DESC

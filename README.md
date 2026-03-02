@@ -16,10 +16,15 @@ Production-style LLM observability starter project.
 - Drift report JSON output (`reports/drift/latest.json`)
 - Starter Grafana dashboard JSON (`dashboards/grafana/llm_observatory_overview.json`)
 
+### Milestone 3
+- Synthetic drift-data generator for fast demos/interviews
+- One-command seed + drift-check workflow (`make drift-demo`)
+- Unit tests for drift and synthetic data seeding
+
 ## Practical Workflow
 1. Run model server (`vLLM`) and API wrapper.
 2. Send traffic to `POST /v1/chat/completions`.
-3. API logs every request/response/latency/status to SQLite.
+3. API logs request/response/latency/status to SQLite.
 4. Run `make drift-check` to compare baseline vs current windows.
 5. Inspect `reports/drift/latest.json` and monitor Prometheus/Grafana panels.
 
@@ -58,6 +63,15 @@ curl -X POST http://localhost:8080/v1/chat/completions \
 make drift-check
 ```
 This writes a report to `reports/drift/latest.json`.
+
+## Run Drift Demo (No Live Model Traffic Needed)
+```bash
+make drift-demo
+```
+This command:
+1. Seeds synthetic baseline/current inference logs with intentional distribution shift.
+2. Runs drift detection.
+3. Writes `reports/drift/latest.json` with severity and alert signals.
 
 ## Run Full Stack
 ```bash

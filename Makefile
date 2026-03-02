@@ -1,4 +1,4 @@
-.PHONY: install run test lint compose-up drift-check
+.PHONY: install run test lint compose-up drift-check drift-demo
 
 install:
 	pip install -e .[dev]
@@ -17,3 +17,6 @@ compose-up:
 
 drift-check:
 	PYTHONPATH=src python scripts/run_drift_check.py
+
+drift-demo:
+	PYTHONPATH=src python scripts/seed_and_check_drift.py
